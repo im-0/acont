@@ -213,6 +213,13 @@ RUN cargo \
         --locked \
         "cargo-shear"
 
+# Install `wild` linker
+RUN cargo \
+        install \
+        --bins \
+        --locked \
+        "wild-linker"
+
 # Remove caches.
 RUN dnf clean all
 RUN rm -rf "/root/.cargo/registry"
