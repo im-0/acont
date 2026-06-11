@@ -1,0 +1,9 @@
+[user]
+    name = !!!UNSET!!! Dev Container
+    email = devcontainer@example.org
+
+[safe]
+    directory = *
+
+[alias]
+    plog = log --color --stat
