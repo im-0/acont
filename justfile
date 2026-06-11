@@ -49,9 +49,37 @@ run project_path name="":
             --detach \
             --volume "${PROJECT_PATH}:/workspaces/project:Z" \
             --device "/dev/fuse" \
+            --publish "127.0.0.1::22/tcp" \
+            --publish "127.0.0.1::80/tcp" \
+            --publish "127.0.0.1::443/tcp" \
+            --publish "127.0.0.1::4096/tcp" \
+            --publish "127.0.0.1::8008/tcp" \
+            --publish "127.0.0.1::8080/tcp" \
+            --publish "127.0.0.1::8443/tcp" \
+            --env "TERM" \
+            --env "COLORTERM" \
+            --env "LS_COLORS" \
+            --env "EDITOR" \
+            --env "MERGE" \
+            --env "PAGER" \
+            --env "BAT_PAGER" \
+            --env "BAT_STYLE" \
+            --env "BAT_PAGING" \
+            --env "BUILDAH_LAYERS" \
+            --env "RUSTFLAGS" \
+            --env "RUST_LOG" \
+            --env "RUST_LIB_BACKTRACE" \
+            --env "RUST_BACKTRACE" \
             --name "${CONT_NAME}" \
             "${CONT_MANIFEST}.${CONT_ARCH}" \
-            bash -c "while sleep 100; do true; done"
+            /usr/bin/sshd -De; \
+    if [ -e ~/.ssh/id_rsa.pub ]; then \
+        podman exec "${CONT_NAME}" mkdir --parents "/root/.ssh"; \
+        podman cp ~/.ssh/id_rsa.pub "${CONT_NAME}:/root/.ssh/authorized_keys"; \
+        podman exec "${CONT_NAME}" chmod 0700 "/root/.ssh"; \
+        podman exec "${CONT_NAME}" chmod 0600 "/root/.ssh/authorized_keys"; \
+    fi; \
+    podman port "${CONT_NAME}"
 
 [doc("Shell inside running container")]
 shell container_name:

@@ -91,6 +91,16 @@ RUN dnf \
         "just" \
         "cmake"
 
+# Install sshd
+RUN dnf \
+        install \
+        --assumeyes \
+        "openssh-server"
+# All containers will have the same host keys
+RUN /usr/libexec/openssh/sshd-keygen "ed25519"
+COPY 99-container.conf /etc/ssh/sshd_config.d/99-container.conf
+RUN chmod 0600 /etc/ssh/sshd_config.d/99-container.conf
+
 # llvm-mingw
 RUN if is_amd64; then \
     dnf \
@@ -120,6 +130,7 @@ RUN if is_aarch64; then \
     rm -rf "/root/llvm-mingw"; \
     fi
 ENV PATH="/opt/aarch64-w64-mingw32/bin:${PATH}"
+RUN printf "export PATH=\"/opt/aarch64-w64-mingw32/bin:\${PATH}\"\n" >>"/etc/profile.d/0000-container-env.sh"
 
 # Tools for generating docker/podman images.
 RUN dnf \
@@ -137,6 +148,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- \
         --no-update-default-toolchain \
         --no-modify-path
 ENV PATH="/root/.cargo/bin:${PATH}"
+RUN printf "export PATH=\"/root/.cargo/bin:\${PATH}\"\n" >>"/etc/profile.d/0000-container-env.sh"
 RUN rustup \
         target add \
         --toolchain "${rust_toolchain_version}" \
@@ -197,9 +209,13 @@ RUN cd "/tmp/binaryen/build" \
 RUN strip "/tmp/binaryen/build/bin/wasm-opt"
 
 ENV TRUNK_SKIP_VERSION_CHECK="true"
+RUN printf "export TRUNK_SKIP_VERSION_CHECK=\"true\"\n" >>"/etc/profile.d/0000-container-env.sh"
 ENV TRUNK_TOOLS_WASM_BINDGEN="${wasm_bindgen_version}"
+RUN printf "export TRUNK_TOOLS_WASM_BINDGEN=\"${wasm_bindgen_version}\"\n" >>"/etc/profile.d/0000-container-env.sh"
 ENV TRUNK_TOOLS_WASM_OPT="${wasm_opt_version}"
+RUN printf "export TRUNK_TOOLS_WASM_OPT=\"${wasm_opt_version}\"\n" >>"/etc/profile.d/0000-container-env.sh"
 ENV TRUNK_SERVE_ADDRESS="0.0.0.0"
+RUN printf "export TRUNK_SERVE_ADDRESS=\"0.0.0.0\"\n" >>"/etc/profile.d/0000-container-env.sh"
 
 # Install `uv`
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -240,4 +256,5 @@ RUN mandb --create
 RUN updatedb
 
 ENV LANG="en_US.UTF-8"
+RUN printf "export LANG=\"en_US.UTF-8\"\n" >>"/etc/profile.d/0000-container-env.sh"
 CMD ["/bin/bash", "--login"]
