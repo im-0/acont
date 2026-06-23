@@ -74,7 +74,8 @@ RUN dnf \
         "strace" \
         "lsof" \
         "usbutils" \
-        "openssl"
+        "openssl" \
+        "tokei"
 
 RUN dnf \
         install \
